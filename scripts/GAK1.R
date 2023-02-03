@@ -1,15 +1,3 @@
-library(ncdf4)
-library(zoo)
-library(gplots)
-library(dplyr)
-library(maps)
-library(mapdata)
-library(chron)
-library(fields)
-library(tidyr)
-library(nlme)
-library(ggplot2)
-library(oce)
 
 # now GAK1 salinity....
 data <- read.csv("./data/GAK1.csv")
@@ -29,12 +17,17 @@ sal.set$day <- yday(date_decimal(as.numeric(rownames(sal.set))))
 
 unloadNamespace("lubridate")
 
-salFMA <- filter(sal.set, day>31 & day <=120)
+salFMA <- dplyr::filter(sal.set, day>31 & day <=120)
 
 sal20mu <- tapply(salFMA$d20, salFMA$year, mean, na.rm=T)
 plot(names(sal20mu), sal20mu, type="b")
 
-gak <- data.frame(year = names(sal20mu),
-                  salinity20m_FMA = sal20mu)
+gak <- data.frame(Year = as.integer(names(sal20mu)),
+                  AKCLIM_GAK1_salinity20m_FMA = sal20mu)
 
-write.csv(gak, "./data/GAK_salinity.csv", row.names = F)
+
+all.dat <- read.csv("./data/WGOA_EcoState_Data_Jan2023.csv")
+
+new.dat <- dplyr::left_join(all.dat, gak)
+
+write.csv(new.dat, "./data/WGOA_EcoState_Data_Jan2023.csv")
